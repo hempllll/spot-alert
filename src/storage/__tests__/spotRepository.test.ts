@@ -3,6 +3,7 @@ import { InMemorySpotRepository } from '../spotRepository'
 import { LocalStorageSpotRepository } from '../localStorageRepository'
 import type { SpotRepository } from '../spotRepository'
 import type { Spot } from '../../scoring'
+import { fakeStorage } from '../../test/fakeStorage'
 
 const sampleSpot: Spot = {
   name: 'Schilksee',
@@ -11,21 +12,6 @@ const sampleSpot: Spot = {
   conditionSets: [
     { windSpeed: { usable: { min: 12, max: 35 }, ideal: { min: 18, max: 28 } } },
   ],
-}
-
-/** A minimal in-memory Storage for the localStorage repository. */
-function fakeStorage(): Storage {
-  const m = new Map<string, string>()
-  return {
-    get length() {
-      return m.size
-    },
-    clear: () => m.clear(),
-    getItem: (k) => m.get(k) ?? null,
-    key: (i) => [...m.keys()][i] ?? null,
-    removeItem: (k) => void m.delete(k),
-    setItem: (k, v) => void m.set(k, String(v)),
-  } as Storage
 }
 
 // Run the same contract against both implementations.

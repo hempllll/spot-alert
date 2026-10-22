@@ -14,7 +14,7 @@ export {
   fetchForecast,
   fetchMarine,
 } from './openMeteo'
-export { normalizeForecast } from './normalize'
+export { normalizeForecast, COARSE_FROM_DAY_INDEX } from './normalize'
 export type * from './types'
 
 export interface GetForecastOptions {
