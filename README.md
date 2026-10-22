@@ -27,3 +27,12 @@ npm run preview  # serve the production build locally
 Pushing to `main` triggers the GitHub Actions workflow in
 [.github/workflows/deploy.yml](.github/workflows/deploy.yml), which builds the app and
 publishes `dist/` to GitHub Pages.
+
+## License
+
+[PolyForm Noncommercial 1.0.0](LICENSE.md): free to use, change and share for personal,
+hobby, research and other noncommercial purposes. Commercial use is not permitted.
+
+Forecast data by [Open-Meteo.com](https://open-meteo.com/) (CC BY 4.0). Map data
+© [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, via
+[OpenFreeMap](https://openfreemap.org/).
