@@ -53,7 +53,7 @@ export const DEFAULT_LINEAR: Record<LinearFactorKind, LinearFactor> = {
   wavePeriod: { usable: { min: 3, max: 15 }, ideal: { min: 6, max: 12 }, importance: 'low' },
 }
 
-/** S through N (the western half), ideal WSW–NW: on the dial's grid. */
+/** W through N to E (the northern half), ideal NW–NE: on the dial's grid. */
 export const DEFAULT_DIRECTION: DirectionFactor = {
   usable: { min: 270, max: 90 },
   ideal: { min: 315, max: 45 },
