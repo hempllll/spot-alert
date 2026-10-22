@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { coordKey } from './forecast'
 import type { ForecastLoader } from './hooks/useForecasts'
@@ -9,6 +9,15 @@ import type { Forecast, Spot } from './scoring'
 import { InMemorySpotRepository, exportSpots } from './storage'
 import { fakeStorage } from './test/fakeStorage'
 import { SETTINGS_KEY, type Origin } from './ui/settings'
+
+// MapLibre needs WebGL, which jsdom lacks: stand in a button that "places" the pin.
+vi.mock('./components/editor/MapPicker', async () => {
+  const { createElement } = await import('react')
+  return {
+    MapPicker: ({ onChange }: { onChange: (c: { lat: number; lon: number }) => void }) =>
+      createElement('button', { type: 'button', onClick: () => onChange({ lat: 54.45, lon: 10.2 }) }, 'Place pin'),
+  }
+})
 
 const NOW = new Date(2026, 9, 22, 9, 0) // Thu 22 Oct 2026
 const DATES = nextDates(NOW)
@@ -165,5 +174,61 @@ describe('App', () => {
 
     expect(await screen.findByText('Import complete.')).toBeInTheDocument()
     expect((await repo.list()).map((s) => s.id).sort()).toEqual(['alpha', 'alpha-2', 'bravo'])
+  })
+
+  it('names the nearest spot when none are within range', async () => {
+    await renderApp({ origin: { lat: 48.14, lon: 11.58, label: 'Munich', source: 'search' } })
+    expect(
+      await screen.findByText(/^No spots within 100 km \(nearest: Alpha, \d+ km\)\.$/),
+    ).toBeInTheDocument()
+  })
+
+  it('adds a spot from the Spots screen', async () => {
+    const user = userEvent.setup()
+    const { repo } = await renderApp()
+    await screen.findByRole('button', { name: /Thu 22.*Alpha/ })
+
+    await user.click(screen.getByRole('button', { name: 'Spots' }))
+    await user.click(screen.getByRole('button', { name: '+ Add' }))
+    expect(await screen.findByRole('heading', { name: 'New spot' })).toBeInTheDocument()
+
+    await user.type(screen.getByLabelText('Name'), 'Charlie')
+    await user.click(screen.getByRole('button', { name: 'Place pin' }))
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    expect(await screen.findByText('Saved Charlie.')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Spots' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Charlie/ })).toBeInTheDocument()
+    expect((await repo.list()).find((s) => s.name === 'Charlie')).toMatchObject({ lat: 54.45, lon: 10.2 })
+  })
+
+  it('edits a spot from its 8-day view and returns there', async () => {
+    const user = userEvent.setup()
+    await renderApp()
+    await user.click(await screen.findByRole('button', { name: /Thu 22.*Alpha/ }))
+    await user.click(screen.getByRole('button', { name: /Alpha/ }))
+    await user.click(screen.getByRole('button', { name: 'Edit' }))
+
+    const name = await screen.findByLabelText('Name')
+    await user.clear(name)
+    await user.type(name, 'Alpha Beach')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    expect(await screen.findByRole('heading', { name: /Alpha Beach/ })).toBeInTheDocument()
+  })
+
+  it('deletes a spot after confirming', async () => {
+    const user = userEvent.setup()
+    const { repo } = await renderApp()
+    await screen.findByRole('button', { name: /Thu 22.*Alpha/ })
+
+    await user.click(screen.getByRole('button', { name: 'Spots' }))
+    await user.click(screen.getByRole('button', { name: /Alpha/ }))
+    await user.click(await screen.findByRole('button', { name: 'Delete spot' }))
+    await user.click(screen.getByRole('button', { name: 'Delete' }))
+
+    expect(await screen.findByText('Deleted Alpha.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Alpha/ })).not.toBeInTheDocument()
+    expect((await repo.list()).map((s) => s.id)).toEqual(['bravo'])
   })
 })

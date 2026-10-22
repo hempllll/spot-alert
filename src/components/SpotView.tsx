@@ -8,10 +8,11 @@ import { DayLabel } from './WeekView'
 interface SpotViewProps {
   result: SpotResult
   onBack: () => void
+  onEdit: () => void
 }
 
 /** One spot's 8 days in calendar order, best day starred. */
-export function SpotView({ result, onBack }: SpotViewProps) {
+export function SpotView({ result, onBack, onEdit }: SpotViewProps) {
   const days = [...result.score.days].sort((a, b) => a.date.localeCompare(b.date))
   const best = days.reduce<(typeof days)[number] | null>(
     (top, d) => (d.coreScore > (top?.coreScore ?? 0) ? d : top),
@@ -27,6 +28,9 @@ export function SpotView({ result, onBack }: SpotViewProps) {
         <h2>
           {result.spot.name} <span className="row-sub">{formatKm(result.distanceKm)}</span>
         </h2>
+        <button type="button" onClick={onEdit}>
+          Edit
+        </button>
       </header>
       <ol className="list">
         {days.map((day) => (

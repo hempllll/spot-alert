@@ -59,3 +59,14 @@ export function whyText(day: DayScore): string | null {
 export function placeLabel(place: Place): string {
   return [place.name, place.region, place.country].filter(Boolean).join(', ')
 }
+
+/** "54.430° N, 10.170° E" */
+export function formatCoords(lat: number, lon: number): string {
+  const part = (v: number, pos: string, neg: string) =>
+    `${Math.abs(v).toFixed(3)}° ${v >= 0 ? pos : neg}`
+  return `${part(lat, 'N', 'S')}, ${part(lon, 'E', 'W')}`
+}
+
+/** A caught value as a message for the user. */
+export const errorText = (err: unknown): string =>
+  err instanceof Error ? err.message : String(err)

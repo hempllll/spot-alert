@@ -24,5 +24,23 @@ export function useSpots(repo: SpotRepository) {
     [repo],
   )
 
-  return { spots, replaceAll }
+  /** Insert or update one spot; returns it as stored (with its id). */
+  const save = useCallback(
+    async (spot: Spot) => {
+      const stored = await repo.save(spot)
+      setSpots(await repo.list())
+      return stored
+    },
+    [repo],
+  )
+
+  const remove = useCallback(
+    async (id: string) => {
+      await repo.remove(id)
+      setSpots(await repo.list())
+    },
+    [repo],
+  )
+
+  return { spots, replaceAll, save, remove }
 }
