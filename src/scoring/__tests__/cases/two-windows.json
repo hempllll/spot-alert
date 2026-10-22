@@ -1,0 +1,42 @@
+{
+  "name": "two good blocks split by gated hours yield a second window",
+  "spot": {
+    "name": "Two windows",
+    "lat": 54.0,
+    "lon": 10.0,
+    "conditionSets": [
+      {
+        "windSpeed": { "usable": { "min": 10, "max": 30 }, "ideal": { "min": 15, "max": 25 } }
+      }
+    ]
+  },
+  "forecast": {
+    "days": [
+      {
+        "date": "2026-10-22",
+        "sunrise": "2026-10-22T06:00",
+        "sunset": "2026-10-22T20:00",
+        "hours": [
+          { "time": "2026-10-22T08:00", "windSpeed": 20, "windDirection": 0 },
+          { "time": "2026-10-22T09:00", "windSpeed": 20, "windDirection": 0 },
+          { "time": "2026-10-22T10:00", "windSpeed": 20, "windDirection": 0 },
+          { "time": "2026-10-22T11:00", "windSpeed": 5, "windDirection": 0 },
+          { "time": "2026-10-22T12:00", "windSpeed": 5, "windDirection": 0 },
+          { "time": "2026-10-22T13:00", "windSpeed": 20, "windDirection": 0 },
+          { "time": "2026-10-22T14:00", "windSpeed": 20, "windDirection": 0 },
+          { "time": "2026-10-22T15:00", "windSpeed": 20, "windDirection": 0 }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "days": [
+      {
+        "date": "2026-10-22",
+        "coreScore": 100,
+        "secondWindow": true,
+        "window": { "start": "2026-10-22T13:00", "end": "2026-10-22T15:00" }
+      }
+    ]
+  }
+}

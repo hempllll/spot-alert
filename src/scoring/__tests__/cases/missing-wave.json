@@ -1,0 +1,33 @@
+{
+  "name": "missing wave data is flagged and the wave factor is skipped",
+  "spot": {
+    "name": "Western Baltic bay",
+    "lat": 54.3,
+    "lon": 10.1,
+    "conditionSets": [
+      {
+        "name": "wind with some swell",
+        "windSpeed": { "usable": { "min": 10, "max": 30 }, "ideal": { "min": 15, "max": 25 } },
+        "waveHeight": { "usable": { "min": 0, "max": 1.5 }, "ideal": { "min": 0.3, "max": 0.8 } },
+        "waveSource": "total"
+      }
+    ]
+  },
+  "forecast": {
+    "days": [
+      {
+        "date": "2026-10-22",
+        "sunrise": "2026-10-22T06:00",
+        "sunset": "2026-10-22T20:00",
+        "hours": [
+          { "time": "2026-10-22T10:00", "windSpeed": 20, "windDirection": 0, "waves": { "total": { "height": null } } },
+          { "time": "2026-10-22T11:00", "windSpeed": 20, "windDirection": 0, "waves": { "total": { "height": null } } },
+          { "time": "2026-10-22T12:00", "windSpeed": 20, "windDirection": 0, "waves": { "total": { "height": null } } }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "days": [{ "date": "2026-10-22", "coreScore": 100, "noWaveData": true }]
+  }
+}
