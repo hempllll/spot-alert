@@ -1,0 +1,38 @@
+{
+  "name": "ideal day scores 100 across the whole window",
+  "spot": {
+    "name": "Ideal",
+    "lat": 54.4,
+    "lon": 11.0,
+    "conditionSets": [
+      {
+        "name": "steady wind",
+        "windSpeed": { "usable": { "min": 10, "max": 30 }, "ideal": { "min": 15, "max": 25 } }
+      }
+    ]
+  },
+  "forecast": {
+    "days": [
+      {
+        "date": "2026-10-22",
+        "sunrise": "2026-10-22T06:00",
+        "sunset": "2026-10-22T20:00",
+        "hours": [
+          { "time": "2026-10-22T10:00", "windSpeed": 20, "windDirection": 0 },
+          { "time": "2026-10-22T11:00", "windSpeed": 20, "windDirection": 0 },
+          { "time": "2026-10-22T12:00", "windSpeed": 20, "windDirection": 0 }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "days": [
+      {
+        "date": "2026-10-22",
+        "coreScore": 100,
+        "weakestFactor": "windSpeed",
+        "window": { "start": "2026-10-22T10:00", "end": "2026-10-22T12:00" }
+      }
+    ]
+  }
+}
