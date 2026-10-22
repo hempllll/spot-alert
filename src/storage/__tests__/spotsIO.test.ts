@@ -60,4 +60,14 @@ describe('import validation', () => {
   it('reports which spot failed', () => {
     expect(bad([spot, { ...spot, lat: 'x' }])).toThrow('spots[1]')
   })
+
+  it('rejects two spots sharing an id', () => {
+    expect(
+      bad([{ ...spot, id: 'a' }, { ...spot, id: 'b' }, { ...spot, id: 'a' }]),
+    ).toThrow('spots[2].id duplicates spots[0]')
+  })
+
+  it('rejects a non-string id', () => {
+    expect(bad([{ ...spot, id: 42 }])).toThrow('spots[0].id')
+  })
 })

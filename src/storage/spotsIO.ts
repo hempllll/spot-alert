@@ -78,6 +78,9 @@ function validateConditionSet(value: unknown, where: string): void {
 function validateSpot(value: unknown, where: string): Spot {
   if (!isObject(value)) fail(`${where} must be an object`)
   const s = value as Record<string, unknown>
+  if (s.id !== undefined && (typeof s.id !== 'string' || s.id === '')) {
+    fail(`${where}.id must be a non-empty string when present`)
+  }
   if (typeof s.name !== 'string' || s.name.trim() === '') {
     fail(`${where}.name must be a non-empty string`)
   }
@@ -99,8 +102,8 @@ function validateSpot(value: unknown, where: string): Spot {
 /**
  * Parse and validate a spots JSON file (either a `{ format, version, spots }`
  * wrapper or a bare array of spots). Throws with a descriptive message on any
- * problem. The returned spots keep whatever ids they had; the repository fills
- * in any that are missing.
+ * problem, including two spots sharing an id. The returned spots keep whatever
+ * ids they had; missing ones are filled in when stored.
  */
 export function importSpots(text: string): Spot[] {
   let parsed: unknown
@@ -116,7 +119,17 @@ export function importSpots(text: string): Spot[] {
       ? parsed.spots
       : fail('Expected a spots array or a { spots: [...] } object')
 
-  return rawSpots.map((spot, i) => validateSpot(spot, `spots[${i}]`))
+  const spots = rawSpots.map((spot, i) => validateSpot(spot, `spots[${i}]`))
+
+  const firstIndexById = new Map<string, number>()
+  spots.forEach((spot, i) => {
+    if (spot.id === undefined) return
+    const first = firstIndexById.get(spot.id)
+    if (first !== undefined) fail(`spots[${i}].id duplicates spots[${first}]`)
+    firstIndexById.set(spot.id, i)
+  })
+
+  return spots
 }
 
 export type { ConditionSet, Spot }

@@ -70,6 +70,18 @@ describe.each(implementations)('%s', (_name, make) => {
     expect((await repo.list()).map((s) => s.name).sort()).toEqual(['A', 'B'])
     expect(replaced.every((s) => typeof s.id === 'string')).toBe(true)
   })
+
+  it('collapses duplicate ids in replaceAll, last one wins', async () => {
+    const repo = make()
+    const replaced = await repo.replaceAll([
+      { ...sampleSpot, id: 'x', name: 'first' },
+      { ...sampleSpot, id: 'x', name: 'second' },
+    ])
+    expect(replaced).toHaveLength(1)
+    const all = await repo.list()
+    expect(all).toHaveLength(1)
+    expect(all[0].name).toBe('second')
+  })
 })
 
 describe('LocalStorageSpotRepository persistence', () => {

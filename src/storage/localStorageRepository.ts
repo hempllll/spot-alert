@@ -7,6 +7,7 @@
  */
 import type { Spot } from '../scoring'
 import {
+  dedupeById,
   withId,
   type SpotRepository,
   type StoredSpot,
@@ -61,7 +62,7 @@ export class LocalStorageSpotRepository implements SpotRepository {
   }
 
   async replaceAll(spots: Spot[]): Promise<StoredSpot[]> {
-    const stored = spots.map(withId)
+    const stored = dedupeById(spots.map(withId))
     this.writeAll(stored)
     return stored
   }
