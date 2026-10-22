@@ -283,7 +283,18 @@ function App({
         </p>
       )}
 
-      <main>{renderScreen()}</main>
+      <main>
+        {renderScreen()}
+        {/* Open-Meteo data is CC BY 4.0: credit it wherever forecasts are shown. */}
+        {(view.name === 'week' || view.name === 'day' || view.name === 'spot') && (
+          <p className="credit">
+            Weather data by{' '}
+            <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">
+              Open-Meteo.com
+            </a>
+          </p>
+        )}
+      </main>
 
       {/* Hidden while editing so a stray tap can't leave the unsaved editor. */}
       {view.name !== 'edit' && (

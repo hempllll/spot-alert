@@ -94,6 +94,14 @@ describe('App', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(8)
   })
 
+  it('credits Open-Meteo for the forecast data', async () => {
+    await renderApp()
+    expect(await screen.findByRole('link', { name: 'Open-Meteo.com' })).toHaveAttribute(
+      'href',
+      'https://open-meteo.com/',
+    )
+  })
+
   it('drills into a day and a spot, and back out', async () => {
     const user = userEvent.setup()
     await renderApp()

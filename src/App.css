@@ -77,6 +77,16 @@ main {
   padding: 0 1rem 1rem;
 }
 
+.credit {
+  margin: 1rem 0 0;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.credit a {
+  color: inherit;
+}
+
 /* --- notices ------------------------------------------------------------- */
 .notice {
   margin: 0.25rem 0 0.6rem;
