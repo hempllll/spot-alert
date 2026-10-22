@@ -18,6 +18,42 @@ import type {
 /** Forecast days ~5-8 have coarse time precision (0-indexed >= 4). */
 export const COARSE_FROM_DAY_INDEX = 4
 
+/**
+ * Open-Meteo stamps the whole series with one fixed UTC offset (the one in
+ * effect now), so after a daylight-saving switch inside the 8 days every time
+ * is an hour off. This rebuilds a naive timestamp in the location's real local
+ * time. Without offset/time-zone info, timestamps pass through unchanged.
+ *
+ * On the night clocks go back, two night hours share a local time; only
+ * daylight hours are scored, so that collision is harmless.
+ */
+function localizer(
+  timeZone: string | undefined,
+  offsetSeconds: number | undefined,
+): (naive: string) => string {
+  if (!timeZone || offsetSeconds === undefined) return (t) => t
+  let format: Intl.DateTimeFormat
+  try {
+    format = new Intl.DateTimeFormat('en-CA', {
+      timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    })
+  } catch {
+    return (t) => t // unknown time zone name
+  }
+  return (naive) => {
+    const instant = Date.parse(`${naive}Z`) - offsetSeconds * 1000
+    if (Number.isNaN(instant)) return naive
+    const p = Object.fromEntries(format.formatToParts(instant).map((x) => [x.type, x.value]))
+    return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`
+  }
+}
+
 /** Read index `i` from an optional array, returning null when absent. */
 function at(arr: (number | null)[] | undefined, i: number): number | null {
   return arr?.[i] ?? null
@@ -51,20 +87,25 @@ export function normalizeForecast(
   marine: OpenMeteoMarineResponse | null,
 ): Forecast {
   const fh = forecast.hourly
+  const local = localizer(forecast.timezone, forecast.utc_offset_seconds)
+  const localMarine = localizer(
+    marine?.timezone ?? forecast.timezone,
+    marine?.utc_offset_seconds ?? forecast.utc_offset_seconds,
+  )
 
-  // Map marine hours by timestamp for quick lookup.
+  // Map marine hours by (local) timestamp for quick lookup.
   const wavesByTime = new Map<string, ForecastHour['waves']>()
   if (marine?.hourly) {
     const mh = marine.hourly
     for (let i = 0; i < mh.time.length; i++) {
-      wavesByTime.set(mh.time[i], waveSourcesAt(mh, i))
+      wavesByTime.set(localMarine(mh.time[i]), waveSourcesAt(mh, i))
     }
   }
 
   // Build hours, grouped by calendar date (first 10 chars of the timestamp).
   const hoursByDate = new Map<string, ForecastHour[]>()
   for (let i = 0; i < fh.time.length; i++) {
-    const time = fh.time[i]
+    const time = local(fh.time[i])
     const windSpeed = at(fh.wind_speed_10m, i)
     const windDirection = at(fh.wind_direction_10m, i)
     // Skip hours missing essential wind data.
@@ -86,8 +127,8 @@ export function normalizeForecast(
 
   const days: ForecastDay[] = forecast.daily.time.map((date, index) => ({
     date,
-    sunrise: forecast.daily.sunrise[index],
-    sunset: forecast.daily.sunset[index],
+    sunrise: local(forecast.daily.sunrise[index]),
+    sunset: local(forecast.daily.sunset[index]),
     hours: hoursByDate.get(date) ?? [],
     coarse: index >= COARSE_FROM_DAY_INDEX,
   }))

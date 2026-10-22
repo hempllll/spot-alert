@@ -77,6 +77,42 @@ describe('normalizeForecast', () => {
     expect(result.days[0].hours).toHaveLength(1) // the null-wind hour dropped
   })
 
+  it('converts the fixed offset to real local time across a DST switch', () => {
+    // Open-Meteo returned summer time (+2h) for the whole week, but clocks go
+    // back on 25 Oct 2026, so Monday's real local times are an hour earlier.
+    const dst: OpenMeteoForecastResponse = {
+      latitude: 54.3,
+      longitude: 10.1,
+      timezone: 'Europe/Berlin',
+      utc_offset_seconds: 7200,
+      hourly: {
+        time: ['2026-10-24T12:00', '2026-10-26T12:00'],
+        wind_speed_10m: [20, 20],
+        wind_direction_10m: [300, 300],
+      },
+      daily: {
+        time: ['2026-10-24', '2026-10-26'],
+        sunrise: ['2026-10-24T08:05', '2026-10-26T08:09'],
+        sunset: ['2026-10-24T18:01', '2026-10-26T17:56'],
+      },
+    }
+    const dstMarine: OpenMeteoMarineResponse = {
+      latitude: 54.3,
+      longitude: 10.1,
+      timezone: 'Europe/Berlin',
+      utc_offset_seconds: 7200,
+      hourly: { time: ['2026-10-26T12:00'], wave_height: [0.5] },
+    }
+    const [sat, mon] = normalizeForecast(dst, dstMarine).days
+
+    expect(sat.sunrise).toBe('2026-10-24T08:05') // still summer time: unchanged
+    expect(sat.hours[0].time).toBe('2026-10-24T12:00')
+    expect(mon.sunrise).toBe('2026-10-26T07:09') // winter time: an hour earlier
+    expect(mon.sunset).toBe('2026-10-26T16:56')
+    expect(mon.hours[0].time).toBe('2026-10-26T11:00')
+    expect(mon.hours[0].waves?.total?.height).toBe(0.5) // still matched to its hour
+  })
+
   it('marks forecast days 5-8 as coarse', () => {
     const sixDays: OpenMeteoForecastResponse = {
       ...forecast,

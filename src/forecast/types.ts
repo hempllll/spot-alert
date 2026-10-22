@@ -11,6 +11,11 @@ export interface OpenMeteoForecastResponse {
   latitude: number
   longitude: number
   timezone: string
+  /**
+   * The single offset Open-Meteo applied to every timestamp — the one in
+   * effect now, even if a DST switch falls inside the forecast.
+   */
+  utc_offset_seconds?: number
   hourly: {
     time: string[]
     wind_speed_10m: (number | null)[]
@@ -28,6 +33,8 @@ export interface OpenMeteoForecastResponse {
 export interface OpenMeteoMarineResponse {
   latitude: number
   longitude: number
+  timezone?: string
+  utc_offset_seconds?: number
   hourly?: {
     time: string[]
     wave_height?: (number | null)[]
