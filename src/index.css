@@ -9,6 +9,8 @@
   --muted: #6b7280;
   --border: #e2e5ea;
   --accent: #0b6bcb;
+  /* Text on an accent-coloured background (selected buttons, Save). */
+  --on-accent: #ffffff;
   --error: #b42318;
   --star: #c98a00;
 
@@ -31,6 +33,7 @@
     --muted: #9aa1ab;
     --border: #2b3139;
     --accent: #5aa9ff;
+    --on-accent: #0b1a2b;
     --error: #ff8a80;
     --star: #f5c542;
     --band-none: #3a4049;

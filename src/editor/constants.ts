@@ -12,6 +12,12 @@ export const PRESET_IDEAL_FRACTION = 0.4
 /** The compass dial snaps to the 16 compass points. */
 export const DIAL_STEP = 22.5
 
+/**
+ * The coast picture behind a compass dial spans this many metres edge to
+ * edge. The dial's outer ring is 84% of the picture, so it covers ~2 km.
+ */
+export const COAST_SPAN_METERS = 2400
+
 export interface SliderScale {
   min: number
   max: number

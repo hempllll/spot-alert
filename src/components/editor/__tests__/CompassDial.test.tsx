@@ -31,6 +31,25 @@ describe('CompassDial', () => {
     expect(handle('ideal start')).toHaveAttribute('aria-valuenow', '270')
   })
 
+  it('draws the coast picture, clipped to a circle, with the spot in the middle', () => {
+    const arcs: Arcs = { usable: { min: 270, max: 90 }, ideal: { min: 315, max: 45 } }
+    const { container } = render(
+      <CompassDial label="Wind direction" arcs={arcs} onChange={() => {}} backdrop="blob:coast" />,
+    )
+    const image = container.querySelector('image')
+    expect(image).toHaveAttribute('href', 'blob:coast')
+    const clip = image?.getAttribute('clip-path') ?? ''
+    expect(clip).toMatch(/^url\(#coast-[\w-]+\)$/)
+    expect(container.querySelector(clip.slice(4, -1))?.tagName).toBe('clipPath')
+    expect(container.querySelector('.spot-pin')).toBeInTheDocument()
+  })
+
+  it('has no picture or spot dot without a backdrop', () => {
+    const { container } = render(<Harness />)
+    expect(container.querySelector('image')).toBeNull()
+    expect(container.querySelector('.spot-pin')).toBeNull()
+  })
+
   it('keeps the ideal end inside the usable arc', () => {
     render(<Harness />)
     press('ideal end', 'ArrowRight', 5) // would go 315 → 22.5; usable ends at N

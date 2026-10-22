@@ -15,6 +15,7 @@ import { errorText, formatCoords } from '../../ui/format'
 import { PlaceSearch } from '../PlaceSearch'
 import { FactorSection } from './FactorSection'
 import { MapPicker } from './MapPicker'
+import { useCoastSnapshot } from './useCoastSnapshot'
 
 const KIEL: Coords = { lat: 54.32, lon: 10.14 }
 
@@ -52,6 +53,8 @@ export default function SpotEditor({
   const [errors, setErrors] = useState<string[]>([])
   const [locationError, setLocationError] = useState<string | null>(null)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  // One coast picture, shared by the wind and wave direction dials.
+  const coast = useCoastSnapshot(draft.lat, draft.lon)
 
   const set = draft.conditionSets[active]
   const updateSet = (next: ConditionSet) =>
@@ -161,6 +164,7 @@ export default function SpotEditor({
             key={kind}
             kind={kind}
             factor={set[kind]}
+            coast={coast}
             onChange={(factor) => updateSet(setFactor(set, kind, factor))}
           />
         ))}

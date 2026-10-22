@@ -6,6 +6,7 @@ import type { DirectionFactor, Importance, LinearFactor } from '../../scoring'
 import type { FactorKind, LinearFactorKind } from '../../scoring/factor'
 import { CompassDial } from './CompassDial'
 import { RangeSlider } from './RangeSlider'
+import type { CoastState } from './useCoastSnapshot'
 
 type Factor = LinearFactor | DirectionFactor
 
@@ -14,6 +15,8 @@ interface FactorSectionProps {
   factor: Factor | undefined
   /** `undefined` switches the factor off. */
   onChange: (factor: Factor | undefined) => void
+  /** Coast picture for direction dials (ignored by other factors). */
+  coast?: CoastState
 }
 
 const PRESETS: [Preset, string][] = [
@@ -25,7 +28,7 @@ const PRESETS: [Preset, string][] = [
 const IMPORTANCE: Importance[] = ['low', 'normal', 'high']
 
 /** One factor: on/off, importance, and its slider or compass dial. */
-export function FactorSection({ kind, factor, onChange }: FactorSectionProps) {
+export function FactorSection({ kind, factor, onChange, coast }: FactorSectionProps) {
   const label = FACTOR_LABELS[kind]
   const direction = isDirectionKind(kind)
   const unit = direction ? '' : ` (${SLIDER_SCALES[kind as LinearFactorKind].unit})`
@@ -59,7 +62,13 @@ export function FactorSection({ kind, factor, onChange }: FactorSectionProps) {
       </div>
       {factor &&
         (direction ? (
-          <DirectionBody label={label} factor={factor as DirectionFactor} onChange={onChange} />
+          <DirectionBody
+            label={label}
+            subject={kind === 'waveDirection' ? 'the waves come' : 'the wind comes'}
+            factor={factor as DirectionFactor}
+            coast={coast}
+            onChange={onChange}
+          />
         ) : (
           <LinearBody
             label={label}
@@ -113,24 +122,55 @@ function LinearBody({
 
 function DirectionBody({
   label,
+  subject,
   factor,
+  coast,
   onChange,
 }: {
   label: string
+  /** "the wind comes" / "the waves come", for the hint. */
+  subject: string
   factor: DirectionFactor
+  coast?: CoastState
   onChange: (factor: DirectionFactor) => void
 }) {
+  const status =
+    !coast || coast.status === 'none'
+      ? 'Place the spot on the map to see the coast here.'
+      : coast.status === 'error'
+        ? 'Couldn’t load the coast picture.'
+        : coast.status === 'loading' && !coast.url
+          ? 'Loading the coast…'
+          : null
+
   return (
     <div className="direction-body">
       <CompassDial
         label={label}
         arcs={{ usable: factor.usable, ideal: factor.ideal }}
         onChange={(arcs) => onChange({ ...factor, ...arcs })}
+        backdrop={coast?.url ?? null}
       />
       <p className="factor-summary">
         <span className="swatch usable" /> usable {formatArc(factor.usable)}
         <br />
         <span className="swatch ideal" /> ideal {formatArc(factor.ideal)}
+      </p>
+      <p className="dial-note">
+        Arcs show where {subject} from.
+        {coast?.url && ' The dot in the middle is the spot.'}
+        {status && (
+          <>
+            <br />
+            {status}
+          </>
+        )}
+        {coast?.url && (
+          <>
+            <br />
+            <span className="map-credit">Map © OpenFreeMap © OpenStreetMap contributors</span>
+          </>
+        )}
       </p>
     </div>
   )

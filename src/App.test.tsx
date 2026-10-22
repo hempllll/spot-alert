@@ -19,6 +19,11 @@ vi.mock('./components/editor/MapPicker', async () => {
   }
 })
 
+// The coast snapshot behind the compass dials needs WebGL too.
+vi.mock('./components/editor/coastSnapshot', () => ({
+  renderCoastSnapshot: vi.fn(async () => 'blob:coast-picture'),
+}))
+
 const NOW = new Date(2026, 9, 22, 9, 0) // Thu 22 Oct 2026
 const DATES = nextDates(NOW)
 
