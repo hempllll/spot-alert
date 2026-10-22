@@ -8,26 +8,9 @@
  * model for the near term and a global model further out, so we don't pin a
  * model explicitly.
  */
+import { demoSpots as spots } from '../src/demoSpots'
 import { getForecast, ForecastCache } from '../src/forecast'
-import { scoreSpot, type Spot } from '../src/scoring'
-
-/** A windsurf-friendly W–NW setup, reused for every demo spot. */
-const wnwBlow: Spot['conditionSets'] = [
-  {
-    name: 'W–NW blow',
-    windSpeed: { usable: { min: 12, max: 35 }, ideal: { min: 18, max: 28 }, importance: 'high' },
-    windDirection: { usable: { min: 200, max: 360 }, ideal: { min: 250, max: 320 } },
-    waveHeight: { usable: { min: 0, max: 1.5 }, ideal: { min: 0.2, max: 0.8 }, importance: 'low' },
-    waveSource: 'total',
-  },
-]
-
-const spots: Spot[] = [
-  { id: 'schilksee', name: 'Kiel-Schilksee', lat: 54.43, lon: 10.17, conditionSets: wnwBlow },
-  { id: 'laboe', name: 'Laboe', lat: 54.41, lon: 10.22, conditionSets: wnwBlow },
-  { id: 'falckenstein', name: 'Falckenstein', lat: 54.39, lon: 10.19, conditionSets: wnwBlow },
-  { id: 'eckernfoerde', name: 'Eckernförde', lat: 54.47, lon: 9.84, conditionSets: wnwBlow },
-]
+import { scoreSpot } from '../src/scoring'
 
 const timeOf = (iso: string): string => iso.slice(11, 16)
 

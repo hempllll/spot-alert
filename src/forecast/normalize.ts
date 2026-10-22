@@ -16,7 +16,7 @@ import type {
 } from './types'
 
 /** Forecast days ~5-8 have coarse time precision (0-indexed >= 4). */
-const COARSE_FROM_DAY_INDEX = 4
+export const COARSE_FROM_DAY_INDEX = 4
 
 /** Read index `i` from an optional array, returning null when absent. */
 function at(arr: (number | null)[] | undefined, i: number): number | null {
