@@ -47,14 +47,14 @@ export const FACTOR_LABELS: Record<FactorKind, string> = {
 
 /** Starting values when a factor is switched on. */
 export const DEFAULT_LINEAR: Record<LinearFactorKind, LinearFactor> = {
-  windSpeed: { usable: { min: 12, max: 35 }, ideal: { min: 18, max: 28 } },
-  gusts: { usable: { min: 0, max: 40 }, ideal: { min: 0, max: 30 }, importance: 'low' },
-  waveHeight: { usable: { min: 0, max: 2 }, ideal: { min: 0.3, max: 1 }, importance: 'low' },
+  windSpeed: { usable: { min: 17, max: 50 }, ideal: { min: 25, max: 35 }, importance: 'normal' },
+  gusts: { usable: { min: 17, max: 50 }, ideal: { min: 25, max: 35 }, importance: 'low' },
+  waveHeight: { usable: { min: 0, max: 4 }, ideal: { min: 2, max: 3 }, importance: 'normal' },
   wavePeriod: { usable: { min: 3, max: 15 }, ideal: { min: 6, max: 12 }, importance: 'low' },
 }
 
 /** S through N (the western half), ideal WSW–NW: on the dial's grid. */
 export const DEFAULT_DIRECTION: DirectionFactor = {
-  usable: { min: 180, max: 360 },
-  ideal: { min: 247.5, max: 315 },
+  usable: { min: 270, max: 90 },
+  ideal: { min: 315, max: 45 },
 }
