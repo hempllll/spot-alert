@@ -1,6 +1,8 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
+import { DEFAULT_LINEAR, SLIDER_SCALES } from '../../../editor/constants'
+import { presetIdeal } from '../../../editor/range'
 import type { Spot } from '../../../scoring'
 import SpotEditor, { type SpotEditorProps } from '../SpotEditor'
 
@@ -45,9 +47,7 @@ describe('SpotEditor', () => {
       name: 'Heidkate',
       lat: 54.45,
       lon: 10.2,
-      conditionSets: [
-        { name: 'Conditions 1', windSpeed: { usable: { min: 12, max: 35 }, ideal: { min: 18, max: 28 } } },
-      ],
+      conditionSets: [{ name: 'Conditions 1', windSpeed: DEFAULT_LINEAR.windSpeed }],
     })
   })
 
@@ -65,9 +65,17 @@ describe('SpotEditor', () => {
     await user.click(screen.getByRole('checkbox', { name: /Wind direction/ }))
     expect(screen.getByRole('group', { name: 'Wind direction' })).toBeInTheDocument()
 
+    // Expected values come from the tuning constants, so retuning defaults
+    // doesn't break the test — as long as the preset actually changes something.
+    const { usable, ideal: before } = DEFAULT_LINEAR.windSpeed
+    const after = presetIdeal(usable, 'more', SLIDER_SCALES.windSpeed.step)
+    expect(after).not.toEqual(before)
+
     const presets = screen.getByRole('group', { name: 'Wind speed presets' })
     await user.click(within(presets).getByRole('button', { name: 'More is better' }))
-    expect(screen.getByText('usable 12–35 kn · ideal 26–35 kn')).toBeInTheDocument()
+    expect(
+      screen.getByText(`usable ${usable.min}–${usable.max} kn · ideal ${after.min}–${after.max} kn`),
+    ).toBeInTheDocument()
   })
 
   it('asks where waves come from only once a wave factor is on', async () => {

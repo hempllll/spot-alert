@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Spot } from '../../scoring'
+import { DEFAULT_DIRECTION } from '../constants'
 import {
   defaultFactor,
   draftToSpot,
@@ -56,7 +57,7 @@ describe('draft', () => {
 
   it('hands out independent default copies', () => {
     const a = defaultFactor('windDirection')
-    a.usable.min = 0
-    expect(defaultFactor('windDirection').usable.min).toBe(180)
+    a.usable.min = 123.4 // mutate the copy...
+    expect(defaultFactor('windDirection')).toEqual(DEFAULT_DIRECTION) // ...defaults untouched
   })
 })
