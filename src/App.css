@@ -30,7 +30,7 @@ button:disabled {
 button.primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 button.link {
   background: none;
@@ -432,7 +432,7 @@ button.danger {
 .tab[aria-selected='true'] {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 .tab.add {
   border-style: dashed;
@@ -462,7 +462,7 @@ button.danger {
 .segmented button[aria-pressed='true'] {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 /* one factor */
@@ -565,19 +565,54 @@ button.danger {
 /* compass dial */
 .direction-body {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem;
+  flex-direction: column;
+  gap: 0.5rem;
 }
+/* Card width on a phone, capped on wide screens. */
 .compass {
-  width: 12rem;
-  height: 12rem;
+  align-self: center;
+  width: 100%;
+  max-width: 22rem;
+  height: auto;
+  aspect-ratio: 1 / 1;
   touch-action: none;
 }
 .compass .ring {
   fill: none;
   stroke: var(--border);
   stroke-width: 12;
+}
+/* Over the coast picture the wide grey tracks become thin guide lines. */
+.compass.has-backdrop .ring {
+  stroke: var(--text);
+  stroke-opacity: 0.35;
+  stroke-width: 1.5;
+  stroke-dasharray: 3 4;
+}
+.compass .backdrop-edge {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 1.5;
+}
+.compass .arc-outline {
+  fill: none;
+  stroke: var(--text);
+  stroke-opacity: 0.55;
+  stroke-width: 15;
+  stroke-linecap: round;
+}
+.compass .spot-pin {
+  fill: var(--accent);
+  stroke: #fff;
+  stroke-width: 2;
+}
+.dial-note {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.map-credit {
+  font-size: 0.75rem;
 }
 .compass .tick {
   stroke: var(--muted);
@@ -587,6 +622,10 @@ button.danger {
   font-size: 15px;
   font-weight: 700;
   fill: var(--muted);
+  /* A halo in the background colour keeps labels legible. */
+  paint-order: stroke;
+  stroke: var(--surface);
+  stroke-width: 3px;
 }
 .compass .arc {
   fill: none;

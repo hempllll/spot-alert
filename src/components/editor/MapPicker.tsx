@@ -3,17 +3,10 @@
  * OpenFreeMap (free, OSM-based, no key). This file pulls in MapLibre, so it is
  * only loaded with the editor.
  */
-import { MapLibreMap, Marker, NavigationControl, setWorkerUrl } from 'maplibre-gl'
-import 'maplibre-gl/dist/maplibre-gl.css'
-// MapLibre finds its worker via a URL Vite can't see; importing it with `?url`
-// makes Vite ship the file and hand us its final address.
-import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
+import { MapLibreMap, Marker, NavigationControl } from 'maplibre-gl'
 import { useEffect, useRef } from 'react'
 import type { Coords } from '../../location'
-
-setWorkerUrl(workerUrl)
-
-const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty'
+import { STYLE_URLS } from './maplibre'
 
 interface MapPickerProps {
   lat: number | null
@@ -41,7 +34,7 @@ export function MapPicker({ lat, lon, center, onChange }: MapPickerProps) {
     const start = initial.current
     const m = new MapLibreMap({
       container: container.current,
-      style: STYLE_URL,
+      style: STYLE_URLS.liberty,
       center: [start.lon, start.lat],
       zoom: start.zoom,
       attributionControl: { compact: true },

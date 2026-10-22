@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { DEFAULT_LINEAR, SLIDER_SCALES } from '../../../editor/constants'
@@ -14,6 +14,11 @@ vi.mock('../MapPicker', async () => {
       createElement('button', { type: 'button', onClick: () => onChange({ lat: 54.45, lon: 10.2 }) }, 'Place pin'),
   }
 })
+
+// The coast snapshot also needs WebGL: hand back a fake picture URL instead.
+vi.mock('../coastSnapshot', () => ({
+  renderCoastSnapshot: vi.fn(async () => 'blob:coast-picture'),
+}))
 
 function renderEditor(props: Partial<SpotEditorProps> = {}) {
   const onSave = vi.fn()
@@ -76,6 +81,28 @@ describe('SpotEditor', () => {
     expect(
       screen.getByText(`usable ${usable.min}–${usable.max} kn · ideal ${after.min}–${after.max} kn`),
     ).toBeInTheDocument()
+  })
+
+  it('shows the coast behind the direction dial once the spot is placed', async () => {
+    const { user } = renderEditor()
+    await user.click(screen.getByRole('checkbox', { name: /Wind direction/ }))
+    expect(screen.getByText(/Place the spot on the map to see the coast here/)).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Place pin' }))
+    const dial = screen.getByRole('group', { name: 'Wind direction' })
+    await waitFor(() =>
+      expect(dial.querySelector('image')).toHaveAttribute('href', 'blob:coast-picture'),
+    )
+    expect(
+      screen.getByText('Arcs show where the wind comes from. The dot in the middle is the spot.'),
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/Place the spot on the map/)).not.toBeInTheDocument()
+  })
+
+  it('words the hint for waves on the wave direction dial', async () => {
+    const { user } = renderEditor()
+    await user.click(screen.getByRole('checkbox', { name: /Wave direction/ }))
+    expect(screen.getByText(/Arcs show where the waves come from\./)).toBeInTheDocument()
   })
 
   it('asks where waves come from only once a wave factor is on', async () => {
