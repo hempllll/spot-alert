@@ -1,9 +1,10 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { lazy, Suspense, useMemo, useState, type ReactNode } from 'react'
 import './App.css'
 import { DataBar } from './components/DataBar'
 import { DayView } from './components/DayView'
 import { ImportDialog } from './components/ImportDialog'
 import { LocationPanel } from './components/LocationPanel'
+import { SpotsScreen } from './components/SpotsScreen'
 import { SpotView } from './components/SpotView'
 import { WeekView } from './components/WeekView'
 import { demoSpots } from './demoSpots'
@@ -13,6 +14,7 @@ import { useForecasts, type ForecastLoader } from './hooks/useForecasts'
 import { useSettings } from './hooks/useSettings'
 import { useSpots } from './hooks/useSpots'
 import {
+  distanceKm,
   getCurrentPosition,
   searchPlaces,
   withinDistance,
@@ -20,7 +22,7 @@ import {
   type Place,
 } from './location'
 import { bestDate, bestSpotPerDay, nextDates, rankForDate, type SpotResult } from './ranking'
-import { scoreSpot } from './scoring'
+import { scoreSpot, type Spot } from './scoring'
 import {
   LocalStorageSpotRepository,
   applyImport,
@@ -32,6 +34,10 @@ import {
   type SpotRepository,
 } from './storage'
 import { downloadText } from './ui/download'
+import { errorText, formatKm } from './ui/format'
+
+// The editor pulls in MapLibre (large), so it is only downloaded when opened.
+const SpotEditor = lazy(() => import('./components/editor/SpotEditor'))
 
 /** Everything external is injectable so tests can run the real UI offline. */
 export interface AppProps {
@@ -47,8 +53,9 @@ type View =
   | { name: 'week' }
   | { name: 'day'; date: string }
   | { name: 'spot'; spotId: string; fromDate: string }
-
-const errorText = (err: unknown): string => (err instanceof Error ? err.message : String(err))
+  | { name: 'spots' }
+  /** `back` is where Save and Cancel return to. */
+  | { name: 'edit'; spotId: string | null; back: View }
 
 function App({
   repo: repoProp,
@@ -61,7 +68,7 @@ function App({
   const [repo] = useState<SpotRepository>(
     () => repoProp ?? new LocalStorageSpotRepository(storage),
   )
-  const { spots, replaceAll } = useSpots(repo)
+  const { spots, replaceAll, save, remove } = useSpots(repo)
   const [settings, setSettings] = useSettings(storage)
   const [view, setView] = useState<View>({ name: 'week' })
   const [locationOpen, setLocationOpen] = useState(settings.origin === null)
@@ -131,9 +138,54 @@ function App({
     setMessage('Import complete.')
   }
 
+  // --- spot editor --------------------------------------------------------
+
+  const openEditor = (spotId: string | null) => setView({ name: 'edit', spotId, back: view })
+
+  async function handleSave(spot: Spot, back: View) {
+    const stored = await save(spot)
+    setMessage(`Saved ${stored.name}.`)
+    setView(back)
+  }
+
+  async function handleDelete(spot: Spot & { id: string }) {
+    await remove(spot.id)
+    setMessage(`Deleted ${spot.name}.`)
+    setView({ name: 'spots' })
+  }
+
   // --- screens ------------------------------------------------------------
 
   function renderScreen(): ReactNode {
+    if (view.name === 'edit') {
+      const spot = view.spotId ? (spots?.find((s) => s.id === view.spotId) ?? null) : null
+      return (
+        <Suspense fallback={<p className="notice">Loading editor…</p>}>
+          <SpotEditor
+            key={view.spotId ?? 'new'}
+            spot={spot}
+            center={origin}
+            searchPlaces={search}
+            getPosition={getPosition}
+            onSave={(s) => handleSave(s, view.back)}
+            onDelete={spot ? () => handleDelete(spot) : undefined}
+            onCancel={() => setView(view.back)}
+          />
+        </Suspense>
+      )
+    }
+    if (view.name === 'spots') {
+      return (
+        <SpotsScreen
+          spots={spots}
+          origin={origin}
+          onBack={() => setView({ name: 'week' })}
+          onAdd={() => openEditor(null)}
+          onEdit={(spotId) => openEditor(spotId)}
+          onDemo={handleDemo}
+        />
+      )
+    }
     if (view.name === 'spot') {
       const result = results.find((r) => r.spot.id === view.spotId)
       if (result) {
@@ -141,6 +193,7 @@ function App({
           <SpotView
             result={result}
             onBack={() => setView({ name: 'day', date: view.fromDate })}
+            onEdit={() => openEditor(result.spot.id)}
           />
         )
       }
@@ -173,7 +226,12 @@ function App({
     if (spots === null) text = 'Loading spots…'
     else if (spots.length === 0) text = 'No spots yet: load the demo spots or import a file.'
     else if (!origin) text = 'Set your location to see spots near you.'
-    else if (inRange.length === 0) text = `No spots within ${maxKm} km.`
+    else if (inRange.length === 0) {
+      const nearest = spots
+        .map((spot) => ({ spot, km: distanceKm(origin, spot) }))
+        .reduce((a, b) => (b.km < a.km ? b : a))
+      text = `No spots within ${maxKm} km (nearest: ${nearest.spot.name}, ${formatKm(nearest.km)}).`
+    }
     else if (loadingCount > 0)
       text = `Loading forecasts (${inRange.length - loadingCount} of ${inRange.length})…`
     return (
@@ -227,12 +285,15 @@ function App({
 
       <main>{renderScreen()}</main>
 
-      <DataBar
-        canExport={(spots?.length ?? 0) > 0}
-        onDemo={handleDemo}
-        onExport={handleExport}
-        onImportFile={handleImportFile}
-      />
+      {/* Hidden while editing so a stray tap can't leave the unsaved editor. */}
+      {view.name !== 'edit' && (
+        <DataBar
+          canExport={(spots?.length ?? 0) > 0}
+          onSpots={() => setView({ name: 'spots' })}
+          onExport={handleExport}
+          onImportFile={handleImportFile}
+        />
+      )}
 
       {pendingImport && (
         <ImportDialog

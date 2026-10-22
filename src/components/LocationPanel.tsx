@@ -1,7 +1,8 @@
-import { useState, type FormEvent } from 'react'
+import { useState } from 'react'
 import type { Coords, Place } from '../location'
-import { placeLabel } from '../ui/format'
+import { errorText, placeLabel } from '../ui/format'
 import type { Settings } from '../ui/settings'
+import { PlaceSearch } from './PlaceSearch'
 
 interface LocationPanelProps {
   settings: Settings
@@ -11,8 +12,6 @@ interface LocationPanelProps {
   getPosition: () => Promise<Coords>
 }
 
-const errorText = (err: unknown): string => (err instanceof Error ? err.message : String(err))
-
 /** Choose where you are (GPS or city search) and how far you'll drive. */
 export function LocationPanel({
   settings,
@@ -21,33 +20,21 @@ export function LocationPanel({
   searchPlaces,
   getPosition,
 }: LocationPanelProps) {
-  const [query, setQuery] = useState('')
-  const [places, setPlaces] = useState<Place[] | null>(null)
-  const [busy, setBusy] = useState(false)
+  const [locating, setLocating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function run(task: () => Promise<void>) {
-    setBusy(true)
+  async function locateWithGps() {
+    setLocating(true)
     setError(null)
     try {
-      await task()
-    } catch (err) {
-      setError(errorText(err))
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const locateWithGps = () =>
-    run(async () => {
       const coords = await getPosition()
       onChange({ ...settings, origin: { ...coords, label: 'Current location', source: 'gps' } })
       onClose()
-    })
-
-  const search = (event: FormEvent) => {
-    event.preventDefault()
-    return run(async () => setPlaces(await searchPlaces(query)))
+    } catch (err) {
+      setError(errorText(err))
+    } finally {
+      setLocating(false)
+    }
   }
 
   const choose = (place: Place) => {
@@ -67,37 +54,12 @@ export function LocationPanel({
         </button>
       </div>
 
-      <button type="button" onClick={locateWithGps} disabled={busy}>
+      <button type="button" onClick={locateWithGps} disabled={locating}>
         Use my location (GPS)
       </button>
+      {error && <p className="error">{error}</p>}
 
-      <form className="search" onSubmit={search}>
-        <input
-          type="search"
-          placeholder="Search city…"
-          aria-label="Search city"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        <button type="submit" disabled={busy || !query.trim()}>
-          Search
-        </button>
-      </form>
-
-      {places &&
-        (places.length === 0 ? (
-          <p className="muted">No places found.</p>
-        ) : (
-          <ul className="places">
-            {places.map((place) => (
-              <li key={`${place.lat},${place.lon}`}>
-                <button type="button" className="link" onClick={() => choose(place)}>
-                  {placeLabel(place)}
-                </button>
-              </li>
-            ))}
-          </ul>
-        ))}
+      <PlaceSearch searchPlaces={searchPlaces} onPick={choose} />
 
       <label className="distance">
         <span>
@@ -112,8 +74,6 @@ export function LocationPanel({
           onChange={(e) => onChange({ ...settings, maxKm: Number(e.target.value) })}
         />
       </label>
-
-      {error && <p className="error">{error}</p>}
     </section>
   )
 }

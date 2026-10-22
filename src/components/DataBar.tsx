@@ -2,19 +2,19 @@ import { useRef } from 'react'
 
 interface DataBarProps {
   canExport: boolean
-  onDemo: () => void
+  onSpots: () => void
   onExport: () => void
   onImportFile: (file: File) => void
 }
 
-/** Bottom bar: load demo spots, export a backup, import a file. */
-export function DataBar({ canExport, onDemo, onExport, onImportFile }: DataBarProps) {
+/** Bottom bar: manage spots, export a backup, import a file. */
+export function DataBar({ canExport, onSpots, onExport, onImportFile }: DataBarProps) {
   const fileInput = useRef<HTMLInputElement>(null)
 
   return (
     <footer className="data-bar">
-      <button type="button" onClick={onDemo}>
-        Demo spots
+      <button type="button" onClick={onSpots}>
+        Spots
       </button>
       <button type="button" onClick={onExport} disabled={!canExport}>
         Export

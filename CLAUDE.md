@@ -7,7 +7,7 @@ Full design and the decided scoring metric: `docs/design.md`. Work plan: GitHub 
 ## Stack (decided)
 - TypeScript PWA, built with Vite + **React**, Vitest for tests
 - Hosted on **GitHub Pages** (public repo) at https://hempllll.github.io/spot-alert/, auto-deployed from `main` by `.github/workflows/deploy.yml`. Vite `base` is `/spot-alert/`.
-- MapLibre + OpenStreetMap-based tiles for the map
+- MapLibre (v6) + OpenFreeMap vector tiles (OSM-based, no API key) for the map; loaded lazily with the spot editor. Its worker is shipped via a `?url` import + `setWorkerUrl` (see `MapPicker.tsx`).
 - Open-Meteo for forecast (wind) and marine (waves) data, called from the client
 - Storage: IndexedDB / localStorage, JSON export/import of spots
 - PWA via vite-plugin-pwa (Workbox). No backend in v1.
