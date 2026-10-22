@@ -5,7 +5,8 @@ Windsurf spot-forecast app: the user saves spots, sets a location (GPS or manual
 Full design and the decided scoring metric: `docs/design.md`. Work plan: GitHub issues #1-#9 (#10 = icebox).
 
 ## Stack (decided)
-- TypeScript PWA, built with Vite (React or Svelte, still open), Vitest for tests
+- TypeScript PWA, built with Vite + **React**, Vitest for tests
+- Hosted on **GitHub Pages** (public repo) at https://hempllll.github.io/spot-alert/, auto-deployed from `main` by `.github/workflows/deploy.yml`. Vite `base` is `/spot-alert/`.
 - MapLibre + OpenStreetMap-based tiles for the map
 - Open-Meteo for forecast (wind) and marine (waves) data, called from the client
 - Storage: IndexedDB / localStorage, JSON export/import of spots
@@ -20,4 +21,4 @@ Full design and the decided scoring metric: `docs/design.md`. Work plan: GitHub 
 
 ## About the user
 - Strong in Python, knows basics of other mainstream languages, new to TypeScript, web tooling and mobile development. Briefly explain web/TypeScript-specific concepts when they first come up.
-- Develops on... (fill in), tests on an iPhone via Add to Home Screen.
+- Develops on Linux Mint, tests on an iPhone via Add to Home Screen.
